@@ -1,9 +1,17 @@
 const WebSocket = require('ws');
+const fs = require('fs');
+const https = require('https');
 
-// Cria o servidor WebSocket
-const wss = new WebSocket.Server({ port: 8765 });
+// Carrega os certificados SSL/TLS
+const server = https.createServer({
+    cert: fs.readFileSync('/etc/letsencrypt/live/ws.area33.chat/fullchain.pem'), // Substitua pelo caminho do certificado
+    key: fs.readFileSync('/etc/letsencrypt/live/ws.area33.chat/privkey.pem')   // Substitua pelo caminho da chave privada
+});
 
-console.log('WebSocket server is running on ws://localhost:8765');
+// Cria o servidor WebSocket seguro
+const wss = new WebSocket.Server({ server });
+
+console.log('WebSocket server is running on wss://localhost:8765');
 
 // Lista de conexões ativas
 const clients = new Set();
@@ -28,4 +36,8 @@ wss.on('connection', (ws) => {
         console.log('Client disconnected');
         clients.delete(ws);
     });
+});
+
+server.listen(8765, () => {
+    console.log('HTTPS server is running on port 8765');
 });
